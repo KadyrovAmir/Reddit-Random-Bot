@@ -1,7 +1,11 @@
+import logging
+
 import environ
 import telebot
 import praw
 import re
+import os
+from flask import Flask, request
 
 # Get token from file. Not the best option to use django environ, but hey. It works though!
 env = environ.Env()
@@ -12,6 +16,7 @@ reddit = praw.Reddit(client_id=env('REDDIT_CLIENT_ID'),
                      client_secret=env('REDDIT_CLIENT_SECRET'),
                      user_agent='my user agent')
 image_link_check = re.compile(r'^https://(i\.imgur\.com|i\.redd\.it)/.+')
+
 
 def reddit_random_post():
     has_image = False
@@ -39,4 +44,26 @@ def start_message(message):
     bot.send_photo(message.chat.id, post['url'], '{} (from /r/{})'.format(post['title'], post['subreddit']))
 
 
-bot.polling()
+if "HEROKU" in list(os.environ.keys()):
+    logger = telebot.logger
+    telebot.logger.setLevel(logging.INFO)
+    server = Flask(__name__)
+
+
+    @server.route("/" + env("TELEGRAM_BOT_TOKEN"), methods=['POST'])
+    def getMessage():
+        bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+        return "!", 200
+
+
+    @server.route("/")
+    def webhook():
+        bot.remove_webhook()
+        bot.set_webhook(url="https://min-gallows.herokuapp.com/{}".format(env("TELEGRAM_BOT_TOKEN")))
+        return "?", 200
+
+
+    server.run(host="0.0.0.0", port=os.environ.get('PORT', 5000))
+else:
+    bot.remove_webhook()
+    bot.polling(none_stop=True)
