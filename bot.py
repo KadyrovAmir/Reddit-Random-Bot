@@ -63,7 +63,7 @@ if "HEROKU" in list(os.environ.keys()):
         return "?", 200
 
 
-    server.run(host="0.0.0.0", port=os.environ.get('PORT', 5000))
+    server.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
 else:
     bot.remove_webhook()
     bot.polling(none_stop=True)
