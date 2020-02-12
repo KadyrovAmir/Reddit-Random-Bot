@@ -59,7 +59,7 @@ if "HEROKU" in list(os.environ.keys()):
     @server.route("/")
     def webhook():
         bot.remove_webhook()
-        bot.set_webhook(url="https://min-gallows.herokuapp.com/{}".format(env("TELEGRAM_BOT_TOKEN")))
+        bot.set_webhook(url="https://floating-anchorage-30384.herokuapp.com/{}".format(env("TELEGRAM_BOT_TOKEN")))
         return "?", 200
 
 
