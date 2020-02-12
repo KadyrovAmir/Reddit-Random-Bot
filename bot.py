@@ -1,5 +1,4 @@
 import logging
-
 import environ
 import telebot
 import praw
@@ -12,7 +11,6 @@ env = environ.Env()
 environ.Env.read_env()
 
 bot = telebot.TeleBot(env("TELEGRAM_BOT_TOKEN"))
-server = Flask(__name__)
 reddit = praw.Reddit(client_id=env('REDDIT_CLIENT_ID'),
                      client_secret=env('REDDIT_CLIENT_SECRET'),
                      user_agent='my user agent')
@@ -45,18 +43,26 @@ def start_message(message):
     bot.send_photo(message.chat.id, post['url'], '{} (from /r/{})'.format(post['title'], post['subreddit']))
 
 
-@server.route("/" + env("TELEGRAM_BOT_TOKEN"), methods=['POST'])
-def getMessage():
-    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
-    return "!", 200
+if "HEROKU" in list(os.environ.keys()):
+    logger = telebot.logger
+    telebot.logger.setLevel(logging.INFO)
+    server = Flask(__name__)
 
 
-@server.route("/")
-def webhook():
-    bot.remove_webhook()
-    bot.set_webhook(url="https://floating-anchorage-30384.herokuapp.com/" + env("TELEGRAM_BOT_TOKEN"))
-    return "?", 200
+    @server.route("/" + env("TELEGRAM_BOT_TOKEN"), methods=['POST'])
+    def getMessage():
+        bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+        return "!", 200
 
 
-if __name__ == '__main__':
+    @server.route("/")
+    def webhook():
+        bot.remove_webhook()
+        bot.set_webhook(url="https://floating-anchorage-30384.herokuapp.com/" + env("TELEGRAM_BOT_TOKEN"))
+        return "?", 200
+
+
     server.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
+else:
+    bot.remove_webhook()
+    bot.polling(none_stop=True)
