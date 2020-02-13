@@ -34,11 +34,16 @@ def reddit_random_post():
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    bot.send_message(message.chat.id, 'Привет, {}. Можем начинать!'.format(message.from_user.first_name))
+    bot.send_message(message.chat.id, 'Привет, {}.\nВоспользуйся командой /next, чтобы получить новый пост с Реддита!'.format(message.from_user.first_name))
+    
+
+@bot.message_handler(commands=['echo'])
+def send_test_message(message):
+    bot.send_message(message.chat.id, 'Привет, {}.\nВсё в порядке, я работаю!'.format(message.from_user.first_name))
 
 
 @bot.message_handler(commands=['next'])
-def start_message(message):
+def new_post_from_reddit(message):
     post = reddit_random_post()
     if post['url'][-3:] == "gif":
         bot.send_document(message.chat.id, post['url'], '{} (from /r/{})'.format(post['title'], post['subreddit']))
