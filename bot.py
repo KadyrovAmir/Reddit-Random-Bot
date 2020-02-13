@@ -40,7 +40,10 @@ def start_message(message):
 @bot.message_handler(commands=['next'])
 def start_message(message):
     post = reddit_random_post()
-    bot.send_photo(message.chat.id, post['url'], '{} (from /r/{})'.format(post['title'], post['subreddit']))
+    if post['url'][-3:] == "gif":
+        bot.send_document(message.chat.id, post['url'], '{} (from /r/{})'.format(post['title'], post['subreddit']))
+    else:
+        bot.send_photo(message.chat.id, post['url'], '{} (from /r/{})'.format(post['title'], post['subreddit']))
 
 
 bot.polling(none_stop=True)
