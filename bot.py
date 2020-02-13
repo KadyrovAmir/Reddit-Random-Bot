@@ -15,6 +15,7 @@ reddit = praw.Reddit(client_id=env('REDDIT_CLIENT_ID'),
                      client_secret=env('REDDIT_CLIENT_SECRET'),
                      user_agent='Created by Mirzik')
 image_link_check = re.compile(r'^https://(i\.imgur\.com|i\.redd\.it)/.+')
+reddit_gif_formats = ['.gif', 'gifv']
 
 
 def reddit_random_post():
@@ -45,7 +46,7 @@ def send_test_message(message):
 @bot.message_handler(commands=['next'])
 def new_post_from_reddit(message):
     post = reddit_random_post()
-    if post['url'][-3:] == "gif":
+    if post['url'][-4:] in reddit_gif_formats:
         bot.send_document(message.chat.id, post['url'], '{} (from /r/{})'.format(post['title'], post['subreddit']))
     else:
         bot.send_photo(message.chat.id, post['url'], '{} (from /r/{})'.format(post['title'], post['subreddit']))
