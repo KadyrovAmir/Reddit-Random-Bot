@@ -47,7 +47,7 @@ def send_test_message(message):
 def new_post_from_reddit(message):
     post = reddit_random_post()
     if post['url'][-4:] in reddit_gif_formats:
-        bot.send_document(message.chat.id, post['url'], '{} (from /r/{})'.format(post['title'], post['subreddit']))
+        bot.send_animation(message.chat.id, post['url'], '{} (from /r/{})'.format(post['title'], post['subreddit']))
     else:
         bot.send_photo(message.chat.id, post['url'], '{} (from /r/{})'.format(post['title'], post['subreddit']))
 
