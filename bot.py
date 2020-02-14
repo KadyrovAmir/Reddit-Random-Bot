@@ -21,7 +21,7 @@ def reddit_random_post():
         post = reddit.subreddit('all').random()
         if post.over_18:
             continue
-        if image_link_check.match(post.url) and not 'politic' in post.subreddit.display_name.lower() and not post.subreddit in banned_subreddits:
+        if image_link_check.match(post.url) and not 'politic' in post.subreddit.display_name.lower() and not post.subreddit.display_name in banned_subreddits:
             reddit_post_info = {'title': post.title,
                                 'url': post.url,
                                 'subreddit': post.subreddit}
