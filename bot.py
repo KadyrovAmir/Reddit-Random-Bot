@@ -13,6 +13,7 @@ reddit = praw.Reddit(client_id=env('REDDIT_CLIENT_ID'),
                      user_agent='Created by Mirzik')
 image_link_check = re.compile(r'^https://(i\.imgur\.com|i\.redd\.it)/.+')
 reddit_gif_formats = ['.gif', 'gifv']
+banned_subreddits = ['RoastMe']
 memes_only = {}
 meme_subreddits = ['youngpeopleyoutube', 'Tinder']
 
@@ -22,7 +23,7 @@ def reddit_random_post():
         post = reddit.subreddit('all').random()
         if post.over_18:
             continue
-        if image_link_check.match(post.url):
+        if image_link_check.match(post.url) and not 'politic' in post.subreddit.display_name.lower() and not post.subreddit.display_name in banned_subreddits:
             reddit_post_info = {'title': post.title,
                                 'url': post.url,
                                 'subreddit': post.subreddit}
