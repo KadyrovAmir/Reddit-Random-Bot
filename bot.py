@@ -4,7 +4,7 @@ import praw
 import re
 import uuid
 import random
-from database import MemeSubreddits, BannedSubreddits
+from database import MemeSubreddits, BannedSubreddits, ClientInfo
 
 # Get token from file. Not the best option to use django environ, but hey. It works though!
 # TODO Transactions for DB and list equality
@@ -15,6 +15,8 @@ bot = telebot.TeleBot(env("TELEGRAM_BOT_TOKEN"))
 reddit = praw.Reddit(client_id=env('REDDIT_CLIENT_ID'),
                      client_secret=env('REDDIT_CLIENT_SECRET'),
                      user_agent='Created by Mirzik')
+                     
+# Some kind of cache, I dunno
 image_link_check = re.compile(r'^https://(i\.imgur\.com|i\.redd\.it)/.+')
 reddit_gif_formats = ['.gif', 'gifv']
 banned_subreddits = [banned_sub.subreddit for banned_sub in BannedSubreddits.select()]
@@ -24,7 +26,7 @@ meme_subreddits = [meme_sub.subreddit for meme_sub in MemeSubreddits.select()]
 
 def reddit_random_post(message):
     while True:
-        if memes_only.get(message.from_user.id, False):
+        if memes_only[message.from_user.id]:
             post = reddit.subreddit(random.choice(meme_subreddits)).random()
         else:
             post = reddit.subreddit('all').random()
@@ -42,8 +44,9 @@ def reddit_random_post(message):
 def start_message(message):
     if message.from_user.id not in memes_only:
         memes_only[message.from_user.id] = False
+        ClientInfo(id=uuid.uuid4(), user_id=message.from_user.id, username=message.from_user.username, role="USER").save(force_insert=True)
     bot.send_message(message.chat.id,
-                     'Привет, {}.\nВоспользуйся командой /next, чтобы получить новый пост с Реддита!'.format(
+                     'Привет, {}.\nВоспользуйся командой /next, чтобы получить новый пост с Реддита!\n\nЕсли ты хочешь посмотреть только смешнявки, воспользуйся командой /funny.\n\nПо всем вопросам обращайся сюда — @kad_ami'.format(
                          message.from_user.first_name))
 
 
@@ -54,26 +57,30 @@ def send_test_message(message):
 
 @bot.message_handler(commands=['next'])
 def new_post_from_reddit(message):
-    post = reddit_random_post(message)
-    if post['url'][-4:] in reddit_gif_formats:
-        bot.send_animation(message.chat.id,
+    if message.from_user.id in memes_only:
+        post = reddit_random_post(message)
+        if post['url'][-4:] in reddit_gif_formats:
+            bot.send_animation(message.chat.id,
+                               post['url'],
+                               caption='{} (from /r/{})'.format(post['title'], post['subreddit']))
+        else:
+            bot.send_photo(message.chat.id,
                            post['url'],
                            caption='{} (from /r/{})'.format(post['title'], post['subreddit']))
     else:
-        bot.send_photo(message.chat.id,
-                       post['url'],
-                       caption='{} (from /r/{})'.format(post['title'], post['subreddit']))
+        bot.send_message(message.chat.id, 'Привет, {}.\nЛогика бота немного поменялась, поэтому напиши /start!'.format(message.from_user.first_name))
 
 
 @bot.message_handler(commands=['funny'])
 def get_only_memes(message):
-    if memes_only.get(message.from_user.id, False):
-        memes_only[message.from_user.id] = False
-        text_message = 'Режим "смешных картинок" деактивирован!\nТеперь ты будешь получать случайные посты со всего Реддита.'
-    else:
-        memes_only[message.from_user.id] = True
-        text_message = 'Режим "смешных картинок" активирован!\nТеперь ты будешь получать только посты со смешнявками.'
-    bot.send_message(message.chat.id, text_message)
+    if message.from_user.id in memes_only:
+        if memes_only[message.from_user.id]:
+            memes_only[message.from_user.id] = False
+            text_message = 'Режим "смешных картинок" деактивирован!\nТеперь ты будешь получать случайные посты со всего Реддита.'
+        else:
+            memes_only[message.from_user.id] = True
+            text_message = 'Режим "смешных картинок" активирован!\nТеперь ты будешь получать только посты со смешнявками.'
+        bot.send_message(message.chat.id, text_message)
 
 
 @bot.message_handler(commands=['add_memes'])

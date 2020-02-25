@@ -25,7 +25,19 @@ class MemeSubreddits(Model):
     class Meta:
         database = pg_db
         db_table = 'meme_subreddits'
+        
+        
+class ClientInfo(Model):
+    id = UUIDField(primary_key=True)
+    user_id = IntegerField()
+    username = CharField(max_length=30, unique=True)
+    role = CharField(max_length=30, unique=True)
+    
+    class Meta:
+        database = pg_db
+        db_table = 'client_info'
 
 if __name__ == '__main__':
     BannedSubreddits.create_table()
     MemeSubreddits.create_table()
+    ClientInfo.create_table()
