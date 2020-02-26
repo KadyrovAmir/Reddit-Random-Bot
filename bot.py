@@ -146,6 +146,17 @@ def add_meme_to_list(message):
         bot.send_message(message.chat.id,
                          "Прости, {}, но у тебя нет права добавлять сабреддиты в чёрный список.".format(
                              message.from_user.first_name))
+                             
+                             
+@bot.message_handler(commands=['users_list'])
+def get_all_users_of_bot(message):
+    if message.from_user.id == 501248642:
+        message_text = "Список пользователей бота:\n\n" + "\n".join(["@{} (id = {}".format(client.username, client.user_id) for client in ClientInfo.select()])
+        bot.send_message(message.chat.id, message_text)
+    else:
+        bot.send_message(message.chat.id,
+                         "Прости, {}, но у тебя нет доступа к этой команде".format(
+                             message.from_user.first_name))
 
 
 bot.polling(none_stop=True)
