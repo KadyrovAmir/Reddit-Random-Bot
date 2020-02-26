@@ -20,7 +20,7 @@ reddit = praw.Reddit(client_id=env('REDDIT_CLIENT_ID'),
 image_link_check = re.compile(r'^https://(i\.imgur\.com|i\.redd\.it)/.+')
 reddit_gif_formats = ['.gif', 'gifv']
 banned_subreddits = [banned_sub.subreddit for banned_sub in BannedSubreddits.select()]
-memes_only = {}
+memes_only = {client.user_id: False for client in ClientInfo.select()}
 meme_subreddits = [meme_sub.subreddit for meme_sub in MemeSubreddits.select()]
 
 
