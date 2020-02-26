@@ -5,9 +5,11 @@ import re
 import uuid
 import random
 from database import MemeSubreddits, BannedSubreddits, ClientInfo
+from tenacity import retry
 
 # Get token from file. Not the best option to use django environ, but hey. It works though!
 # TODO Transactions for DB and list equality
+# TODO decorator for admin functions
 env = environ.Env()
 environ.Env.read_env()
 
@@ -55,25 +57,23 @@ def send_test_message(message):
     bot.send_message(message.chat.id, 'Привет, {}.\nВсё в порядке, я работаю!'.format(message.from_user.first_name))
 
 
+@retry
 @bot.message_handler(commands=['next'])
 def new_post_from_reddit(message):
-    try:
-        if message.from_user.id in memes_only:
-            post = reddit_random_post(message)
-            if post['url'][-4:] in reddit_gif_formats:
-                bot.send_animation(message.chat.id,
-                                   post['url'],
-                                   caption='{} (from /r/{})'.format(post['title'], post['subreddit']))
-            else:
-                bot.send_photo(message.chat.id,
+    if message.from_user.id in memes_only:
+        post = reddit_random_post(message)
+        if post['url'][-4:] in reddit_gif_formats:
+            bot.send_animation(message.chat.id,
                                post['url'],
                                caption='{} (from /r/{})'.format(post['title'], post['subreddit']))
         else:
-            bot.send_message(message.chat.id,
-                             'Привет, {}.\nЛогика бота немного поменялась, поэтому напиши /start!'.format(
-                                 message.from_user.first_name))
-    except telebot.apihelper.ApiException:
-        new_post_from_reddit(message)
+            bot.send_photo(message.chat.id,
+                           post['url'],
+                           caption='{} (from /r/{})'.format(post['title'], post['subreddit']))
+    else:
+        bot.send_message(message.chat.id,
+                         'Привет, {}.\nЛогика бота немного поменялась, поэтому напиши /start!'.format(
+                             message.from_user.first_name))
 
 
 @bot.message_handler(commands=['funny'])
