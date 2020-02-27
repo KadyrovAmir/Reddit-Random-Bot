@@ -9,7 +9,7 @@ from tenacity import retry
 
 # Get token from file. Not the best option to use django environ, but hey. It works though!
 # TODO Transactions for DB and list equality
-# TODO decorator for admin functions
+# TODO Edit DB and set the role for me
 env = environ.Env()
 environ.Env.read_env()
 
@@ -24,6 +24,18 @@ reddit_gif_formats = ['.gif', 'gifv']
 banned_subreddits = [banned_sub.subreddit for banned_sub in BannedSubreddits.select()]
 memes_only = {client.user_id: False for client in ClientInfo.select()}
 meme_subreddits = [meme_sub.subreddit for meme_sub in MemeSubreddits.select()]
+
+
+def admin_only(func):
+    def wrapper(message):
+        current_user = ClientInfo.get(ClientInfo.user_id == message.from_user.id)
+        if current_user.role == "ADMIN":
+            func(message)
+        else:
+            bot.send_message(message.chat.id,
+                         "Прости, {}, но у тебя нет доступа к этой команде".format(
+                             message.from_user.first_name))
+    return wrapper
 
 
 def reddit_random_post(message):
