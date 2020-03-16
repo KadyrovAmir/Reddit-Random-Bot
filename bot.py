@@ -46,7 +46,7 @@ def reddit_random_post(message):
             post = reddit.subreddit(random.choice(meme_subreddits)).random()
         else:
             post = reddit.subreddit('all').random()
-        if post.over_18:
+        if post.subreddit.over18 or post.over_18:
             continue
         if image_link_check.match(
                 post.url) and 'politic' not in post.subreddit.display_name.lower() and post.subreddit.display_name not in banned_subreddits:
