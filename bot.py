@@ -71,8 +71,8 @@ def send_test_message(message):
     bot.send_message(message.chat.id, 'Привет, {}.\nВсё в порядке, я работаю!'.format(message.from_user.first_name))
 
 
-@retry
 @bot.message_handler(commands=['next'])
+@retry
 def new_post_from_reddit(message):
     if message.from_user.id in memes_only:
         post = reddit_random_post(message)
