@@ -8,7 +8,6 @@ from database import MemeSubreddits, BannedSubreddits, ClientInfo
 from tenacity import retry
 
 # TODO Transactions for DB and list equality
-# TODO Edit DB and set the role for me
 # TODO Figure out what to do with DB properties (it resets itself constantly)
 
 # Get token from file. Not the best option to use django environ, but hey. It works though!
