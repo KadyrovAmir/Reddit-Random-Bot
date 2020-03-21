@@ -103,79 +103,66 @@ def get_only_memes(message):
 
 
 @bot.message_handler(commands=['add_memes'])
+@admin_only
 def add_meme_to_list(message):
-    if message.from_user.id == 501248642:
-        if message.reply_to_message:
-            try:
-                meme_subreddit = message.reply_to_message.caption.split('/r/')[1][:-1]
-                if meme_subreddit not in meme_subreddits:
-                    meme_subreddits.append(meme_subreddit)
-                    MemeSubreddits(id=uuid.uuid4(), subreddit=meme_subreddit, user=message.from_user.id).save(force_insert=True)
-                    bot.send_message(message.chat.id, "/r/{} успешно добавлен в список!".format(meme_subreddit))
-                else:
-                    bot.send_message(message.chat.id, "/r/{} уже есть в списке!".format(meme_subreddit))
-            except:
-                bot.send_message(message.chat.id, "Что-то пошло не так!\nНе удалось обновить список!")
-        else:
-            bot.send_message(message.chat.id, "Отправь команду через Reply!")
+    if message.reply_to_message:
+        try:
+            meme_subreddit = message.reply_to_message.caption.split('/r/')[1][:-1]
+            if meme_subreddit not in meme_subreddits:
+                meme_subreddits.append(meme_subreddit)
+                MemeSubreddits(id=uuid.uuid4(), subreddit=meme_subreddit, user=message.from_user.id).save(
+                    force_insert=True)
+                bot.send_message(message.chat.id, "/r/{} успешно добавлен в список!".format(meme_subreddit))
+            else:
+                bot.send_message(message.chat.id, "/r/{} уже есть в списке!".format(meme_subreddit))
+        except:
+            bot.send_message(message.chat.id, "Что-то пошло не так!\nНе удалось обновить список!")
     else:
-        bot.send_message(message.chat.id,
-                         "Прости, {}, но у тебя нет права добавлять новые сабреддиты с мемами в список.".format(
-                             message.from_user.first_name))
+        bot.send_message(message.chat.id, "Отправь команду через Reply!")
 
 
 @bot.message_handler(commands=['delete_memes'])
+@admin_only
 def delete_meme_from_list(message):
-    if message.from_user.id == 501248642:
-        if message.reply_to_message:
-            try:
-                meme_subreddit = message.reply_to_message.caption.split('/r/')[1][:-1]
-                if meme_subreddit in meme_subreddits:
-                    meme_subreddits.remove(meme_subreddit)
-                    MemeSubreddits.get(MemeSubreddits.subreddit == meme_subreddit).delete_instance()
-                    bot.send_message(message.chat.id, "/r/{} успешно удалён из списка!".format(meme_subreddit))
-            except:
-                bot.send_message(message.chat.id, "Что-то пошло не так!\nНе удалось обновить список!")
-        else:
-            bot.send_message(message.chat.id, "Отправь команду через Reply!")
+    if message.reply_to_message:
+        try:
+            meme_subreddit = message.reply_to_message.caption.split('/r/')[1][:-1]
+            if meme_subreddit in meme_subreddits:
+                meme_subreddits.remove(meme_subreddit)
+                MemeSubreddits.get(MemeSubreddits.subreddit == meme_subreddit).delete_instance()
+                bot.send_message(message.chat.id, "/r/{} успешно удалён из списка!".format(meme_subreddit))
+        except:
+            bot.send_message(message.chat.id, "Что-то пошло не так!\nНе удалось обновить список!")
     else:
-        bot.send_message(message.chat.id,
-                         "Прости, {}, но у тебя нет права удалять сабреддиты из списка с мемами.".format(
-                             message.from_user.first_name))
+        bot.send_message(message.chat.id, "Отправь команду через Reply!")
 
 
 @bot.message_handler(commands=['ban'])
+@admin_only
 def add_meme_to_list(message):
-    if message.from_user.id == 501248642:
-        if message.reply_to_message:
-            try:
-                ban_subreddit = message.reply_to_message.caption.split('/r/')[1][:-1]
-                if ban_subreddit not in banned_subreddits:
-                    banned_subreddits.append(ban_subreddit)
-                    BannedSubreddits(id=uuid.uuid4(), subreddit=ban_subreddit, user=message.from_user.id).save(force_insert=True)
-                    bot.delete_message(message.chat.id, message.reply_to_message.message_id)
-                    bot.send_message(message.chat.id, "/r/{} успешно добавлен в чёрный список!".format(ban_subreddit))
-                else:
-                    bot.send_message(message.chat.id, "/r/{} уже есть в чёрном списке!".format(ban_subreddit))
-            except:
-                bot.send_message(message.chat.id, "Что-то пошло не так!\nНе удалось обновить список!")
-        else:
-            bot.send_message(message.chat.id, "Отправь команду через Reply!")
+    if message.reply_to_message:
+        try:
+            ban_subreddit = message.reply_to_message.caption.split('/r/')[1][:-1]
+            if ban_subreddit not in banned_subreddits:
+                banned_subreddits.append(ban_subreddit)
+                BannedSubreddits(id=uuid.uuid4(), subreddit=ban_subreddit, user=message.from_user.id).save(
+                    force_insert=True)
+                bot.delete_message(message.chat.id, message.reply_to_message.message_id)
+                bot.send_message(message.chat.id, "/r/{} успешно добавлен в чёрный список!".format(ban_subreddit))
+            else:
+                bot.send_message(message.chat.id, "/r/{} уже есть в чёрном списке!".format(ban_subreddit))
+        except:
+            bot.send_message(message.chat.id, "Что-то пошло не так!\nНе удалось обновить список!")
     else:
-        bot.send_message(message.chat.id,
-                         "Прости, {}, но у тебя нет права добавлять сабреддиты в чёрный список.".format(
-                             message.from_user.first_name))
+        bot.send_message(message.chat.id, "Отправь команду через Reply!")
                              
                              
 @bot.message_handler(commands=['bot_users'])
+@admin_only
 def get_all_users_of_bot(message):
-    if message.from_user.id == 501248642:
-        message_text = "Список пользователей бота:\n\n" + "\n".join(["@{} (id = {})".format(client.username, client.user_id) for client in ClientInfo.select()])
-        bot.send_message(message.chat.id, message_text)
-    else:
-        bot.send_message(message.chat.id,
-                         "Прости, {}, но у тебя нет доступа к этой команде".format(
-                             message.from_user.first_name))
+    message_text = "Список пользователей бота:\n\n" + "\n".join(
+        ["@{} (id = {})".format(client.username, client.user_id) for client in ClientInfo.select()])
+    bot.send_message(message.chat.id, message_text)
 
 
 bot.polling(none_stop=True)
