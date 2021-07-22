@@ -1,43 +1,50 @@
-from peewee import *
-import environ
+import os
 
-env = environ.Env()
-environ.Env.read_env()
-pg_db = PostgresqlDatabase(env('DB_DATABASE'), user=env('DB_USERNAME'), password=env('DB_PASSWORD'),
-                           host=env('DB_HOST'), port=5432)
+from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import Column, String, Integer, Boolean, create_engine
 
 
-class BannedSubreddits(Model):
-    id = UUIDField(primary_key=True)
-    subreddit = CharField(max_length=30, unique=True)
-    user = IntegerField()
+engine = create_engine(
+    f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
+    f"@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DB')}"
+)
 
-    class Meta:
-        database = pg_db
-        db_table = 'banned_subreddits'
+Base = declarative_base()
+Session = sessionmaker(bind=engine)
+session = Session()
 
 
-class MemeSubreddits(Model):
-    id = UUIDField(primary_key=True)
-    subreddit = CharField(max_length=30, unique=True)
-    user = IntegerField()
+class BannedSubreddit(Base):
+    __tablename__ = "banned_subreddits"
 
-    class Meta:
-        database = pg_db
-        db_table = 'meme_subreddits'
+    id = Column(Integer, primary_key=True)
+    subreddit = Column(String(30), unique=True)
+    user = Column(Integer, unique=True)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.id=}, {self.subreddit=}, {self.user=})"
+
+
+class MemeSubreddit(Base):
+    __tablename__ = "meme_subreddits"
+
+    id = Column(Integer, primary_key=True)
+    subreddit = Column(String(30), unique=True)
+    user = Column(Integer, unique=True)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.id=}, {self.subreddit=}, {self.user=})"
         
         
-class ClientInfo(Model):
-    id = UUIDField(primary_key=True)
-    user_id = IntegerField()
-    username = CharField(max_length=30, unique=True)
-    role = CharField(max_length=30, unique=True)
-    
-    class Meta:
-        database = pg_db
-        db_table = 'client_info'
+class ClientInfo(Base):
+    __tablename__ = "client_info"
 
-if __name__ == '__main__':
-    BannedSubreddits.create_table()
-    MemeSubreddits.create_table()
-    ClientInfo.create_table()
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, unique=True)
+    username = Column(String(255), unique=True)
+    is_admin = Column(Boolean, default=False)
+    is_meme_only = Column(Boolean, default=False)
+
+    def __repr__(self):
+        return (f"{self.__class__.__name__}({self.id=}, {self.user_id=}, "
+                f"{self.username=}, {self.is_admin=}, {self.is_meme_only})")

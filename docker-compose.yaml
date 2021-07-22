@@ -1,0 +1,31 @@
+version: "3.7"
+
+x-service-volumes: &service-volumes
+  - ./:/app/:rw,cached
+
+volumes:
+  db-data: {}
+
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reddit-telegram-bot
+    volumes: *service-volumes
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    ports:
+    - "8000:8000"
+
+  postgres:
+    image: postgres
+    container_name: postgres
+    ports:
+    - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+    - db-data:/var/lib/postgresql/data
