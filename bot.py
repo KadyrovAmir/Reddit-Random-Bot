@@ -1,9 +1,12 @@
+import logging
 import os
 from functools import wraps
 import telebot
 from database import MemeSubreddit, BannedSubreddit, ClientInfo, session, Base, engine
+from enums import FileContentType
 from helpers import get_current_user, get_reddit_random_post
 
+telebot.logger.setLevel(logging.DEBUG)
 bot = telebot.TeleBot(os.getenv("TELEGRAM_BOT_TOKEN"))
 
 
@@ -46,10 +49,9 @@ def send_test_message(message):
 
 @bot.message_handler(commands=["next"])
 def new_post_from_reddit(message):
-    reddit_gif_formats = [".gif", "gifv"]
     post = get_reddit_random_post(message.from_user.id)
 
-    if post["url"][-4:] in reddit_gif_formats:
+    if post["type"] == FileContentType.GIF:
         bot.send_animation(
             message.chat.id,
             post["url"],
@@ -59,7 +61,7 @@ def new_post_from_reddit(message):
         bot.send_photo(
             message.chat.id,
             post["url"],
-            caption="{post['title']} (from /r/{post['subreddit']})"
+            caption=f"{post['title']}\n\n(from /r/{post['subreddit']})"
         )
 
 

@@ -1,8 +1,7 @@
 import os
 
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy import Column, String, Integer, Boolean, create_engine
-
+from sqlalchemy import Column, String, Integer, Boolean, create_engine, UniqueConstraint
 
 engine = create_engine(
     f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
@@ -15,22 +14,28 @@ session = Session()
 
 
 class BannedSubreddit(Base):
-    __tablename__ = "banned_subreddits"
+    __tablename__ = "banned_subreddit"
+    __table_args__ = (
+        UniqueConstraint("subreddit", "user"),
+    )
 
     id = Column(Integer, primary_key=True)
-    subreddit = Column(String(30), unique=True)
-    user = Column(Integer, unique=True)
+    subreddit = Column(String(30), unique=False)
+    user = Column(Integer, unique=False)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.id=}, {self.subreddit=}, {self.user=})"
 
 
 class MemeSubreddit(Base):
-    __tablename__ = "meme_subreddits"
+    __tablename__ = "meme_subreddit"
+    __table_args__ = (
+        UniqueConstraint("subreddit", "user"),
+    )
 
     id = Column(Integer, primary_key=True)
-    subreddit = Column(String(30), unique=True)
-    user = Column(Integer, unique=True)
+    subreddit = Column(String(30), unique=False)
+    user = Column(Integer, unique=False)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.id=}, {self.subreddit=}, {self.user=})"
